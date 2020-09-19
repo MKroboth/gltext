@@ -28,24 +28,9 @@
 #include <math.h>
 #include <map>
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <GL/gl.h>
+#include <glad/glad.h>
 
-static void* glPointer(const char* funcname) {
-    return (void*)wglGetProcAddress(funcname);
-}
-#else
-#include <GL/glx.h>
 
-static void* glPointer(const char* funcname) {
-    return (void*)glXGetProcAddress((GLubyte*)funcname);
-}
-#endif
-
-// These need to be included after the windows stuff
-#include "gl3.h"
 #include "harfbuzz/hb-ft.h"
 
 #define GLYPH_VERT_SIZE (4*4*sizeof(GLfloat))
@@ -118,31 +103,31 @@ static PFNGLGETUNIFORMLOCATIONPROC gltextGetUniformLocation;
 static PFNGLBINDATTRIBLOCATIONPROC gltextBindAttribLocation;
 
 static void initGlPointers() {
-    gltextActiveTexture = (PFNGLACTIVETEXTUREPROC)glPointer("glActiveTexture");
-    gltextBindSampler = (PFNGLBINDSAMPLERPROC)glPointer("glBindSampler");
-    gltextGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)glPointer("glGenVertexArrays");
-    gltextBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)glPointer("glBindVertexArray");
-    gltextDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)glPointer("glDeleteVertexArrays");
-    gltextGenBuffers = (PFNGLGENBUFFERSPROC)glPointer("glGenBuffers");
-    gltextBindBuffer = (PFNGLBINDBUFFERPROC)glPointer("glBindBuffer");
-    gltextDeleteBuffers = (PFNGLDELETEBUFFERSPROC)glPointer("glDeleteBuffers");
-    gltextBufferData = (PFNGLBUFFERDATAPROC)glPointer("glBufferData");
-    gltextBufferSubData = (PFNGLBUFFERSUBDATAPROC)glPointer("glBufferSubData");
-    gltextVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)glPointer("glVertexAttribPointer");
-    gltextEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)glPointer("glEnableVertexAttribArray");
-    gltextCreateShader = (PFNGLCREATESHADERPROC)glPointer("glCreateShader");
-    gltextShaderSource = (PFNGLSHADERSOURCEPROC)glPointer("glShaderSource");
-    gltextCompileShader = (PFNGLCOMPILESHADERPROC)glPointer("glCompileShader");
-    gltextDeleteShader = (PFNGLDELETESHADERPROC)glPointer("glDeleteShader");
-    gltextCreateProgram = (PFNGLCREATEPROGRAMPROC)glPointer("glCreateProgram");
-    gltextAttachShader = (PFNGLATTACHSHADERPROC)glPointer("glAttachShader");
-    gltextLinkProgram = (PFNGLLINKPROGRAMPROC)glPointer("glLinkProgram");
-    gltextUseProgram = (PFNGLUSEPROGRAMPROC)glPointer("glUseProgram");
-    gltextUniform2i = (PFNGLUNIFORM2IPROC)glPointer("glUniform2i");
-    gltextUniform1i = (PFNGLUNIFORM1IPROC)glPointer("glUniform1i");
-    gltextUniform3f = (PFNGLUNIFORM3FPROC)glPointer("glUniform3f");
-    gltextGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)glPointer("glGetUniformLocation");
-    gltextBindAttribLocation = (PFNGLBINDATTRIBLOCATIONPROC)glPointer("glBindAttribLocation");
+    gltextActiveTexture = (PFNGLACTIVETEXTUREPROC)glActiveTexture;
+    gltextBindSampler = (PFNGLBINDSAMPLERPROC)glBindSampler;
+    gltextGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)glGenVertexArrays;
+    gltextBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)glBindVertexArray;
+    gltextDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)glDeleteVertexArrays;
+    gltextGenBuffers = (PFNGLGENBUFFERSPROC)glGenBuffers;
+    gltextBindBuffer = (PFNGLBINDBUFFERPROC)glBindBuffer;
+    gltextDeleteBuffers = (PFNGLDELETEBUFFERSPROC)glDeleteBuffers;
+    gltextBufferData = (PFNGLBUFFERDATAPROC)glBufferData;
+    gltextBufferSubData = (PFNGLBUFFERSUBDATAPROC)glBufferSubData;
+    gltextVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)glVertexAttribPointer;
+    gltextEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)glEnableVertexAttribArray;
+    gltextCreateShader = (PFNGLCREATESHADERPROC)glCreateShader;
+    gltextShaderSource = (PFNGLSHADERSOURCEPROC)glShaderSource;
+    gltextCompileShader = (PFNGLCOMPILESHADERPROC)glCompileShader;
+    gltextDeleteShader = (PFNGLDELETESHADERPROC)glDeleteShader;
+    gltextCreateProgram = (PFNGLCREATEPROGRAMPROC)glCreateProgram;
+    gltextAttachShader = (PFNGLATTACHSHADERPROC)glAttachShader;
+    gltextLinkProgram = (PFNGLLINKPROGRAMPROC)glLinkProgram;
+    gltextUseProgram = (PFNGLUSEPROGRAMPROC)glUseProgram;
+    gltextUniform2i = (PFNGLUNIFORM2IPROC)glUniform2i;
+    gltextUniform1i = (PFNGLUNIFORM1IPROC)glUniform1i;
+    gltextUniform3f = (PFNGLUNIFORM3FPROC)glUniform3f;
+    gltextGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)glGetUniformLocation;
+    gltextBindAttribLocation = (PFNGLBINDATTRIBLOCATIONPROC)glBindAttribLocation;
 }
 
 struct FontSystem {
@@ -331,7 +316,12 @@ struct FontPimpl {
         ur.s = br.s;
         ur.t = ul.t;
         short glyph_offset = num_glyphs_cached * 4;
-        unsigned short indices[6] = {glyph_offset+0, glyph_offset+2, glyph_offset+3, glyph_offset+0, glyph_offset+3, glyph_offset+1};
+        unsigned short indices[6] = {static_cast<unsigned short>(((unsigned short)glyph_offset+0)),
+				     static_cast<unsigned short>(((unsigned short)glyph_offset+2)),
+				     static_cast<unsigned short>(((unsigned short)glyph_offset+3)),
+				     static_cast<unsigned short>(((unsigned short)glyph_offset+0)),
+				     static_cast<unsigned short>(((unsigned short)glyph_offset+3)),
+				     static_cast<unsigned short>(((unsigned short)glyph_offset+1))};
         gltextBufferSubData(GL_ARRAY_BUFFER, (GLintptr)(num_glyphs_cached*GLYPH_VERT_SIZE), GLYPH_VERT_SIZE, corners);
         gltextBufferSubData(GL_ELEMENT_ARRAY_BUFFER, (GLintptr)(num_glyphs_cached*GLYPH_IDX_SIZE), GLYPH_IDX_SIZE, indices);
         texpos_x += x_size;

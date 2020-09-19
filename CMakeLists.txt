@@ -71,35 +71,14 @@ find_package(Uniscribe)
 find_package(GLUT)
 find_package(OpenGL REQUIRED)
 find_package(Freetype REQUIRED)
+find_package(OpenGL REQUIRED)
 
-include_directories(${FREETYPE_INCLUDE_DIRS})
+include_directories(${FREETYPE_INCLUDE_DIRS} ${CMAKE_BINARY_DIR}/glad_cmake/include )
 
 add_definitions(-DHAVE_OT=1)
 
-if(GRAPHITE2_FOUND)
-  set(HB_SOURCES ${HB_SOURCES}
-    harfbuzz/hb-graphite2.cc
 
-    harfbuzz/hb-graphite2.h
-  )
-  set(HB_EXTRA_LIBS ${GRAPHITE2_LIBRARY})
-  add_definitions(-DHAVE_GRAPHITE=1)
-endif()
-
-if(UNISCRIBE_FOUND)
-  option(GLTEXT_USE_UNISCRIBE "Enable uniscribe. This will cause gltext and your application to require Windows Vista or newer" FALSE)
-  if(GLTEXT_USE_UNISCRIBE)
-    set(HB_SOURCES ${HB_SOURCES}
-      harfbuzz/hb-uniscribe.cc
-
-      harfbuzz/hb-uniscribe.h
-    )
-    set(HB_EXTRA_LIBS ${UNISCRIBE_LIBRARY})
-    add_definitions(-DHAVE_UNISCRIBE=1)
-  endif()
-endif()
-
-add_library(gltext ${GLTEXT_SOURCES} ${GLTEXT_HEADERS} ${HB_SOURCES})
+add_library(gltext ${OpenGL_LIBRARIES} ${GLTEXT_SOURCES} ${GLTEXT_HEADERS} ${HB_SOURCES})
 
 if(GLUT_FOUND)
     option(GLTEXT_BUILD_DEMO_TEST "Build the demo 'test' program" FALSE)
